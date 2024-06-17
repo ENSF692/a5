@@ -1,6 +1,6 @@
 # web_data_app.py
 # June 2024
-# Modified by: STUDENT NAME
+# Modified by: Bo Zheng Ma
 #
 # An simple program for demonstrating web applications using Flask and web scraping of data using Beautiful Soup.
 # Detailed specifications are provided via the Assignment 5 README file.
@@ -74,21 +74,34 @@ def book_data():
 
     titles = []
     prices = []
-
+    sales = []
     # For each book listed on the page, get the title and the price from inside in the html data
+    # Sales we will get it by multiplying the price by 0.75
     for book in book_results:
         titles.append(book.h3.a.get('title'))
-        prices.append(float(book.find('p', class_="price_color").text[1:]))
+        # prices.append(float(book.find('p', class_="price_color").text[1:]))
+        # sales.append(float(book.find('p', class_="price_color").text[1:]) * 0.75)
+        title = book.h3.a.get('title')
+        price_text = book.find('p', class_="price_color").text
+        try:
+            price = round(float(price_text[1:]), 2)  # Round the price to 2 decimal places
+            sale_price = round(price * 0.75, 2)      # Calculate and round the sale price
+            prices.append(f"${price}")               # Format price as a string with a dollar sign
+            sales.append(f"${sale_price}")           # Format sales price as a string with a dollar sign
+        except ValueError:
+            print(f"Error. Failed to parse price for book: {title} with price text: {price_text}")
+
 
     # Create a DataFrame using the two lists
-    book_data = pd.DataFrame(list(zip(titles, prices)), columns=['Titles','Prices'])    
+    book_data = pd.DataFrame(list(zip(titles, prices, sales)), columns=['Titles','Prices', 'Sales'])    
     print(book_data)        # Print to the terminal as confirmation - only we can see this
 
     # Format and print the DataFrame using the html template provided in the templates subdirectory
-    return render_template('template.html',  tables=[book_data.to_html(classes='data')], titles=book_data.columns.values)
+    return render_template("template.html",  tables=[book_data.to_html(classes='data')], titles=book_data.columns.values)
+
 
 @app.route("/learn")
 def learn():
     # Return a string the describes one thing you learned in ENSF 692.
-    pass
+    return "I learned how to use regex to filter out unwanted characters from a string!"
 
